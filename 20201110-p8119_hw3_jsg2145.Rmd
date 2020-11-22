@@ -1,0 +1,221 @@
+---
+title: "20201110-p8119_hw3_jsg2145"
+author: "Jared Garfinkel"
+date: "11/10/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(viridis)
+library(SKAT)
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	message = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+```{r}
+tibble(Chapter = c(7, 10, 11),
+       Problems = c("9", "2, 3", "3"))
+```
+
+# Chapter 7
+
+## Problem 9
+
+```{r}
+data = read_delim("./data/Takei_SNPs.txt", delim = " ")
+data
+```
+
+To test $H_0$: $p_{cases}$ = $p_{controls}$ without assuming HWE,
+
+```{r}
+summary_table = data %>% 
+  group_by(SNPID) %>% 
+  summarize(r_M = 2*MM+Mm,
+            r_m = 2*mm+Mm,
+            s_M = 2*MM_1 + Mm_1,
+            s_m = 2*mm_1 + Mm_1,
+            n_M = 2*(MM + MM_1) + (Mm + Mm_1),
+            n_m = 2*(mm + mm_1) + (Mm + Mm_1),
+            r = MM + Mm + mm,
+            s = MM_1 + Mm_1 + mm_1,
+            n = MM + Mm + mm + MM_1 + Mm_1 + mm_1,
+            xcases = (2*MM + Mm)/r,
+            xcontrols = (2*MM_1 + Mm_1)/s,
+            pcases = xcases/2,
+            pcontrols = xcontrols/2,
+            x = (xcases + xcontrols)/2,
+            p = (pcases + pcontrols)/2,
+            zt = 2*sqrt(r*s)*(pcases - pcontrols)/sqrt(4*(MM+MM_1)+(Mm+Mm_1)-4*n*p^2))
+# zt = 2*sqrt(pcases -pcontrol)
+```
+
+
+```{r}
+OR_tab = data %>% 
+  summarize(MM = sum(MM),
+            Mm = sum(Mm),
+            mm = sum(mm),
+            MM_1 = sum(MM_1),
+            Mm_1 = sum(Mm_1),
+            mm_1 = sum(mm_1))
+tibble(Status =
+         c("Cases", "Controls"),
+       `Exposed (r1)` = 
+         c(Disease = pull(OR_tab, Mm),
+                Control = pull(OR_tab, Mm_1)),
+       `Unexposed (r0)` = 
+         c(Disease = pull(OR_tab, MM), 
+                Control = pull(OR_tab, MM_1)))
+  
+  # unnest(cols = c(Exposed, Unexposed))
+```
+
+$OR_{r_1}$ = a * d / b * c = `r round(6300 * 16053 /6983 / 10581, 3)`
+
+```{r}
+tibble(Status =
+         c("Cases", "Controls"),
+       `Exposed (r2)` = 
+         c(Disease = pull(OR_tab, mm),
+                Control = pull(OR_tab, mm_1)),
+       `Unexposed (r0)` = 
+         c(Disease = pull(OR_tab, MM), 
+                Control = pull(OR_tab, MM_1)))
+```
+
+$OR_{r_2}$ = `r round(1876 * 16053 / 1451 / 10581, 3)`
+
+# Chapter 10
+
+## Problem 2
+
+Compute the Bonferroni correction for the SNPs.
+
+There are 35 SNPs.
+
+So, we divide the significance level by 35.
+
+$\alpha \le M*\alpha'$ = `r round(0.05/35, 5)`
+
+$Z_T \le \phi(0.00143)$
+
+```{r}
+# qnorm(1-0.00143)
+summary_table %>% 
+  mutate(zt2 = zt^2,
+         chisq = qchisq(1-0.00143, 1)) %>% 
+  filter(abs(zt2)>chisq)
+```
+
+It appears that all the SNPs are significant even using the Bonferroni adjustment.
+
+## Problem 3
+
+```{r}
+summary_table %>% 
+  mutate(p_zt = dnorm(zt)) %>% 
+  arrange(p_zt) %>% 
+  mutate(rank_p_zt = row_number(),
+         FDR = rank_p_zt/35*0.05) %>% 
+  filter(p_zt < FDR)
+```
+
+All the p-values are significant using a modified Simes-procedure.
+
+For all (i), $p_i < \frac{(i)}{M}\alpha$
+
+# Chapter 11
+
+## Problem 3
+
+$1 - \alpha$ = P(for i SNPs, $H_0$ is not rejected when the null is true)
+
+$$1 - \alpha = \sum_{i = 0}^{M}\left[{M \choose i} (\alpha_1(1-\alpha_2))^i(1-\alpha_1)^{m-i}\right]$$
+
+= $$[\alpha_1(1-\alpha_2) + (1-\alpha_1)]^M$$
+
+Since $(1-\alpha)^\frac{1}{M}$ ~ $1 - \frac{\alpha}{M}$,
+
+$$\frac{\alpha}{M} = \alpha_1*\alpha_2*...*\alpha_K$$
+
+Thus, $$\frac{\alpha}{M} = \prod_{k = 1}^{M}\alpha_i$$
+
+# SKAT
+
+```{r}
+data(SKAT.example)
+names(SKAT.example)
+attach(SKAT.example)
+```
+
+```{r}
+skimr::skim(SKAT.example)
+```
+
+There are 67 variables of Z - Z variables are mostly 0, but range from 0 to 2.
+
+In the variables X.1 and Y.b there are an equal number of observations taking values of 0 and 1.
+
+X.2 and y.c appear to be continuous variables centered around 0 with a a variance near 1.
+
+```{r}
+df = SKAT.example %>%
+  data.frame() %>% 
+  tibble() %>% 
+  janitor::clean_names()
+```
+
+
+```{r}
+df %>% 
+  ggplot(aes(x = x_2, fill = as_factor(x_1))) +
+  geom_histogram(alpha = 0.3)
+```
+
+```{r}
+df %>% 
+  ggplot(aes(x = y_c, fill = as_factor(y_b))) +
+  geom_histogram(alpha = 0.4)
+```
+
+
+It appears that the grouping variables X.1 and y.b do not overlap.
+
+```{r}
+obj<-SKAT_Null_Model(y.c ~ X, out_type="C", data = SKAT.example)
+```
+
+```{r}
+#SKAT test
+SKAT(Z, obj, r.corr=0)$p.value
+```
+
+
+```{r}
+#Burden test
+SKAT(Z, obj,r.corr=1)$p.value
+```
+
+
+```{r}
+# SKAT-O: Optimal over r.corr in [0,1]; r.corr is the 
+# correlation among the beta’s of individual variants in 
+# the gene.
+SKAT(Z, obj, method="optimal")$p.value
+```
+
