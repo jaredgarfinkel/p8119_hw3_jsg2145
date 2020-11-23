@@ -167,7 +167,7 @@ attach(SKAT.example)
 skimr::skim(SKAT.example)
 ```
 
-There are 67 variables of Z - Z variables are mostly 0, but range from 0 to 2.
+There are 67 variables of Z variables. Z variables are mostly 0, but range from 0 to 2.
 
 In the variables X.1 and Y.b there are an equal number of observations taking values of 0 and 1.
 
@@ -187,6 +187,8 @@ df %>%
   geom_histogram(alpha = 0.3)
 ```
 
+These variables appear to overlap in most places.
+
 ```{r}
 df %>% 
   ggplot(aes(x = y_c, fill = as_factor(y_b))) +
@@ -194,11 +196,15 @@ df %>%
 ```
 
 
-It appears that the grouping variables X.1 and y.b do not overlap.
+It appears that the grouping variables X.1 and y.b have little overlap.
 
 ```{r}
 obj<-SKAT_Null_Model(y.c ~ X, out_type="C", data = SKAT.example)
 ```
+
+The purpose of the analysis is to find an association between genotypes at one or SNPs among cases and controls.
+
+# Question 2
 
 ```{r}
 #SKAT test
@@ -219,3 +225,73 @@ SKAT(Z, obj,r.corr=1)$p.value
 SKAT(Z, obj, method="optimal")$p.value
 ```
 
+All of the tests for association show evidence to reject the null hypothesis at an alpha of 0.05. We can therefore reject the null that there is no association between at least one SNP and the disease of interest.
+
+# Question 3
+
+```{r}
+SKAT(Z, obj, r.corr=0,weights.beta=c(0.5,0.5))$p.value
+SKAT(Z, obj, r.corr=1,weights.beta=c(0.5,0.5))$p.value
+SKAT(Z,obj,method="optimal.adj",weights.beta=c(0.5,0.5))$p.value
+```
+
+When the weighting is implemented, the correlation structure with $\rho$ = 1 finds no evidence to reject the null.
+
+# Question 4
+
+```{r}
+obj<-SKAT_Null_Model(y.c ~ X, out_type="C")
+
+SKAT_CommonRare(Z, obj)$p.value
+
+SKAT_CommonRare(Z, obj, r.corr.rare=1, r.corr.common=1, test.type="Joint")$p.value
+```
+The default joint test of association with common and rare variants uses a correlation of 0. However, when the correlation structure is 1 in the common and rare variants joint test of association, the p-value is higher. This does not affect significance in the case. 
+
+# Question 5
+
+```{r}
+data(SKAT.haplotypes)
+names(SKAT.haplotypes)
+attach(SKAT.haplotypes)
+```
+
+```{r}
+set.seed(719)
+out.c<-Power_Continuous(Haplotype,SNPInfo$CHROM_POS, SubRegion.Length=5000, Causal.Percent= 20, N.Sim=10, MaxBeta=2,Negative.Percent=20)
+out.c
+```
+
+```{r}
+out.c<-Power_Continuous(Haplotype,SNPInfo$CHROM_POS, SubRegion.Length=500,Causal.Percent= 20, N.Sim=10, MaxBeta=2,Negative.Percent=20)
+out.c
+```
+
+A high subregion length results in a higher r-squared and higher power. We therefore choose the larger subregion length.
+
+```{r}
+out.c<-Power_Continuous(Haplotype,SNPInfo$CHROM_POS, SubRegion.Length=5000,Causal.Percent= 10, N.Sim=10, MaxBeta=2,Negative.Percent=20)
+out.c
+```
+
+A lower causal percent results in a lower r-squared and lower power. We therefore choose the larger causal percent.
+
+```{r}
+out.c<-Power_Continuous(Haplotype,SNPInfo$CHROM_POS, SubRegion.Length=5000,Causal.Percent= 20, N.Sim=10, MaxBeta=2,Negative.Percent=20,BetaType = "Fixed")
+out.c
+```
+
+The beta-type "fixed" results in a higher r-squared, but lower power. We keep the default, BetaType = "Log".
+
+```{r}
+out.b<-Power_Logistic(Haplotype,SNPInfo$CHROM_POS, SubRegion.Length=5000,Causal.Percent= 20, N.Sim=10 ,MaxOR=7, Negative.Percent=20)
+out.b
+```
+
+When the model treats the traits as dichotomous the power is reduced.
+
+```{r}
+Get_RequiredSampleSize(out.c, Power=0.8)
+```
+
+At varying levels of type I error, the required sample size ranges from 882 to 2414. This will affect the family-wise error rate.
