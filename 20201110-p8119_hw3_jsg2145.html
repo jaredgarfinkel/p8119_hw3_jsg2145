@@ -426,7 +426,24 @@ data</code></pre>
             x = (xcases + xcontrols)/2,
             p = (pcases + pcontrols)/2,
             zt = 2*sqrt(r*s)*(pcases - pcontrols)/sqrt(4*(MM+MM_1)+(Mm+Mm_1)-4*n*p^2))
-# zt = 2*sqrt(pcases -pcontrol)</code></pre>
+
+summary_table</code></pre>
+<pre><code>## # A tibble: 35 x 17
+##    SNPID   r_M   r_m   s_M   s_m   n_M   n_m     r     s     n xcases xcontrols
+##    &lt;chr&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt;     &lt;dbl&gt;
+##  1 rs10~   723   357  1207   215  1930   572   540   711  1251   1.34     1.70 
+##  2 rs11~  1052    30  1314    88  2366   118   541   701  1242   1.94     1.87 
+##  3 rs11~   838   248   992   414  1830   662   543   703  1246   1.54     1.41 
+##  4 rs15~   646   432   675   725  1321  1157   539   700  1239   1.20     0.964
+##  5 rs15~   639   431  1007   375  1646   806   535   691  1226   1.19     1.46 
+##  6 rs15~   664   400  1084   322  1748   722   532   703  1235   1.25     1.54 
+##  7 rs15~   987    71  1352    34  2339   105   529   693  1222   1.87     1.95 
+##  8 rs15~   992    70  1372    36  2364   106   531   704  1235   1.87     1.95 
+##  9 rs28~   997    75  1381    35  2378   110   536   708  1244   1.86     1.95 
+## 10 rs38~   650   422  1010   364  1660   786   536   687  1223   1.21     1.47 
+## # ... with 25 more rows, and 5 more variables: pcases &lt;dbl&gt;, pcontrols &lt;dbl&gt;,
+## #   x &lt;dbl&gt;, p &lt;dbl&gt;, zt &lt;dbl&gt;</code></pre>
+<pre class="r"><code># zt = 2*sqrt(pcases -pcontrol)</code></pre>
 <pre class="r"><code>OR_tab = data %&gt;% 
   summarize(MM = sum(MM),
             Mm = sum(Mm),
@@ -1575,7 +1592,7 @@ SKAT_CommonRare(Z, obj)$p.value</code></pre>
 <pre><code>## [1] 0.004381306</code></pre>
 <pre class="r"><code>SKAT_CommonRare(Z, obj, r.corr.rare=1, r.corr.common=1, test.type=&quot;Joint&quot;)$p.value</code></pre>
 <pre><code>## [1] 0.02408793</code></pre>
-<p>The default joint test of association with common and rare variants uses a correlation of 0. However, when the correlation structure is 1 in the common and rare variants joint test of association, the p-value is higher. This does not affect significance in the case.</p>
+<p>The default joint test of association with common and rare variants uses a correlation of 0. However, when the correlation structure is 1 in the common and rare variants joint test of association, the p-value is higher. This does not affect significance in this case.</p>
 </div>
 <div id="question-5" class="section level1">
 <h1>Question 5</h1>

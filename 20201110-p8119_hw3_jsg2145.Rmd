@@ -61,6 +61,8 @@ summary_table = data %>%
             x = (xcases + xcontrols)/2,
             p = (pcases + pcontrols)/2,
             zt = 2*sqrt(r*s)*(pcases - pcontrols)/sqrt(4*(MM+MM_1)+(Mm+Mm_1)-4*n*p^2))
+
+summary_table
 # zt = 2*sqrt(pcases -pcontrol)
 ```
 
@@ -246,7 +248,7 @@ SKAT_CommonRare(Z, obj)$p.value
 
 SKAT_CommonRare(Z, obj, r.corr.rare=1, r.corr.common=1, test.type="Joint")$p.value
 ```
-The default joint test of association with common and rare variants uses a correlation of 0. However, when the correlation structure is 1 in the common and rare variants joint test of association, the p-value is higher. This does not affect significance in the case. 
+The default joint test of association with common and rare variants uses a correlation of 0. However, when the correlation structure is 1 in the common and rare variants joint test of association, the p-value is higher. This does not affect significance in this case. 
 
 # Question 5
 
